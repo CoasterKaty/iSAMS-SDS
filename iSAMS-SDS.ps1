@@ -9,7 +9,7 @@
 
 [CmdletBinding(DefaultParameterSetName="Main")]
 param([switch][Parameter(ParameterSetName="ViewHelp")]$Help,
-[bool][Parameter(ParameterSetName="Main")]$SkipDownload,
+[switch][Parameter(ParameterSetName="Main")]$SkipDownload,
 [string][Parameter(Mandatory=$true, ParameterSetName="Main")]$CSVPath,
 [switch][Parameter(ParameterSetName="ViewSubject")]$ViewSubjects,
 [string[]][Parameter(ParameterSetName="Main")]$ExcludedSubjects,
@@ -28,12 +28,12 @@ $iSAMSAPIKey = "8B87C910-FFFF-DDDD-AAAA-E0FAABCDEF1C"	  #API Key (looks like a G
 
 if ($Help) {
     Write-Host
-    Write-Host "Example: .\iSAMS-SDS.ps1 -CSVPath C:\SDS-CSV [-SkipDownload:$true -ExcludedSubjects @(44,16,17) -YearGroups @(7,8,9,10,11,12,13) -Suffix '/2020/21' -ExtraTeachers @('DeputyHead@school.com')]"
+    Write-Host "Example: .\iSAMS-SDS.ps1 -CSVPath C:\SDS-CSV [-SkipDownload -ExcludedSubjects @(44,16,17) -YearGroups @(7,8,9,10,11,12,13) -Suffix '/2020/21' -ExtraTeachers @('DeputyHead@school.com')]"
     Write-Host "All parameters except CSVPath are optional"
-    Write-Host "ExcludedSubjects is an array of Subject IDs you wish to exclude. Run iSAMS-SDS.ps1 -ViewSubjects:$true to see a list of ID/Names"
+    Write-Host "ExcludedSubjects is an array of Subject IDs you wish to exclude. Run iSAMS-SDS.ps1 -ViewSubjects to see a list of ID/Names"
     Write-Host "IncludedSubjects is an array of Subject IDs you wish to include. Don't use this at the same time as ExcludedSubjects"
     Write-Host "YearGroups selects the year groups you want data for. No value denotes years 0-13."
-    Write-Host "SkipDownload skips downloading the iSAMS data, if you've already got it recently"
+    Write-Host "SkipDownload skips downloading the iSAMS data, if you've already got it recently, more useful when testing"
     Write-Host "Suffix is added to each team name"
     Write-Host "ExtraTeachers is an array of the UPN of any teachers you want added to every team, e.g. SLT"
     return

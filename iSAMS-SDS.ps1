@@ -21,8 +21,8 @@ param([switch][Parameter(ParameterSetName="ViewHelp")]$Help,
 
 # Fill out variables:
 $SchoolName = "SchoolName"		                          #Used in SDS CSV as school name
-$DFENo = "8889999"				                              #Used in SDS CSVs as school ID, can be anything you like but I tend to use the school's DFE number
-$iSAMSHost = "isams.school.net"	                        #Hostname of your iSAMS server
+$DFENo = "8889999"				                          #Used in SDS CSVs as school ID, can be anything you like but I tend to use the school's DFE number
+$iSAMSHost = "isams.school.net"	                          #Hostname of your iSAMS server
 $iSAMSAPIKey = "8B87C910-FFFF-DDDD-AAAA-E0FAABCDEF1C"	  #API Key (looks like a GUID)
 
 
@@ -161,7 +161,7 @@ foreach ($entry in $isamsData.iSAMS.TeachingManager.SetLists.SetList) {
 }
 
 
-# Get all sets
+# Get all sets, loop through sets (applying filter if applicable) and build up Classes hash table to contain class name/students/teachers
 $Classes = @{}
 foreach ($entry in $isamsData.iSAMS.TeachingManager.Sets.Set) {
     $isFiltered = ($ExcludedSubjects -notcontains $entry.SubjectId.InnerText)

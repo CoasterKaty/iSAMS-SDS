@@ -2,9 +2,9 @@
 # Data exported via iSAMS API
 #
 #
-# Katy Nicholson, May 2021
+# Katy Nicholson, May 2021, April 2025
 # https://katystech.blog/
-# v 1.0.5
+# v 1.0.6
 #
 
 [CmdletBinding(DefaultParameterSetName="Main")]
@@ -80,7 +80,7 @@ if ($IncludedSubjects) {
 $Errors = @()
 
 # Remove old files if they exist
-foreach ($file in @("users","orgs","classes","enrollments")) {
+foreach ($file in @("users","orgs","classes","enrollments","roles")) {
     if (Test-Path("$CSVPath\$file.csv")) {
         Remove-Item "$CSVPath\$file.csv"
     }
@@ -91,8 +91,9 @@ foreach ($file in @("users","orgs","classes","enrollments")) {
 Add-Content -Path "$CSVPath\orgs.csv" -Value "sourcedId,name,type"
 Add-Content -Path "$CSVPath\classes.csv" -Value "sourcedId,orgSourcedId,title"
 Add-Content -Path "$CSVPath\enrollments.csv" -Value "classSourcedId,userSourcedId,role"
-Add-Content -Path "$CSVPath\users.csv" -Value "sourcedId,orgSourcedIds,username,role,familyName,givenName,password,grade"
+Add-Content -Path "$CSVPath\users.csv" -Value "sourcedId,orgSourcedIds,username,role,familyName,givenName,password,grade,email,phone,sms,activeDirectoryMatchId"
 Add-Content -Path "$CSVPath\orgs.csv" -Value "$DFENo,$SchoolName,school"
+Add-Content -Path "$CSVPath\roles.csv" -Value "orgSourcedId,userSourcedId,role"
 
 
 #Process pupils
@@ -107,7 +108,8 @@ foreach ($entry in $isamsData.iSAMS.PupilManager.CurrentPupils.Pupil) {
             } else {
                 $entryYearGroup = $entry.NCYear.PadLeft(2, '0')
             }
-            Add-Content -Path "$CSVPath\users.csv", -Value ($entry.schoolId + ",$DFENo," + $entry.EmailAddress + ",student,,,," + $entryYearGroup)
+            Add-Content -Path "$CSVPath\users.csv", -Value ($entry.schoolId + ",$DFENo," + $entry.EmailAddress + ",student,,,," + $entryYearGroup +",,,,")
+            Add-Content -Path "$CSVPath\roles.csv", -Value ("$DFENo," + $entry.schoolID + ",student")
         } else {
             $Errors += [PSCustomObject] @{
                 "SchoolID" = $entry.schoolId
@@ -138,7 +140,7 @@ if ($ExtraTeachers) {
         if ($TeacherData) {
             $ExtraTeacherIDs += $TeacherData.Id
         } else {
-            #If the teacher doesn't exist in the source, create an entry for them (e.g. integration service accounts) ID is a string so can just use their email.
+            #If the teacher doesn't exist in the source, create an entry for them with random ID (e.g. integration service accounts)
             $AllStaff += [PSCustomObject]@{
                 "Id"=$teacher
                 "EmailAddress"=$teacher
@@ -162,6 +164,7 @@ foreach ($entry in $isamsData.iSAMS.TeachingManager.SetLists.SetList) {
 
 
 # Get all sets, loop through sets (applying filter if applicable) and build up Classes hash table to contain class name/students/teachers
+
 $Classes = @{}
 foreach ($entry in $isamsData.iSAMS.TeachingManager.Sets.Set) {
     $isFiltered = ($ExcludedSubjects -notcontains $entry.SubjectId.InnerText)
@@ -176,7 +179,7 @@ foreach ($entry in $isamsData.iSAMS.TeachingManager.Sets.Set) {
                 $ActiveTeachers += $teacher.StaffId
             }
         }
-        $TeacherList += $ExtraTeacherIDs
+	$TeacherList += $ExtraTeacherIDs
         $ClassData.Add("Teacher", $TeacherList)
         $ClassData.Add("Pupils", $SetPupils.Get_Item([int]$entry.Id))
         $Classes.Add($entry.Id, $ClassData)
@@ -208,9 +211,10 @@ foreach ($teacher in $ActiveTeachers) {
     $TeacherData = $AllStaff.Where{$_.Id -eq $teacher}
     if ($TeacherData) {
         #Write teachers to users.csv
-        Add-Content -Path "$CSVPath\users.csv", -Value ($TeacherData.Id + ",$DFENo," + $TeacherData.EmailAddress + ",teacher,,,,")
+        Add-Content -Path "$CSVPath\users.csv", -Value ($TeacherData.Id + ",$DFENo," + $TeacherData.EmailAddress + ",teacher,,,," +",,,,")
+        Add-Content -Path "$CSVPath\roles.csv", -Value ("$DFENo," + $TeacherData.Id + ",teacher")
     }
 }
-foreach ($Error in $Errors) {
-    Write-Output $Error
+foreach ($SDSError in $Errors) {
+    Write-Output $SDSError
 }
